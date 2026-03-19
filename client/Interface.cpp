@@ -371,6 +371,10 @@ bool Initialize(void)
 
   // printf("(dbg) ID:%s, PW:%s\r\n", m_pcRegID, m_pcRegPassword);
 
+  int tx_buf_num = 6 * (32*1024) / 8;
+  int rx_buf_num = 6 * (32*1024) / 8;
+  NTIL_SetVideoRTPBuffer(rx_buf_num, tx_buf_num);
+
   if (NTIL_Initialize((char*)STRING_SERVER_URL, m_pcRegID, m_pcRegPassword,
                       C2C_MessageCallback, C2C_AudioCallback, C2C_VideoCallback, C2C_CommandCallback, NULL) != 0)
   {

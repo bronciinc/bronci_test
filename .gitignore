@@ -1,4 +1,5 @@
 .vscode/
-.build/
+device/.build/
+client/.build/
 /client/.vs/
 /client/out/

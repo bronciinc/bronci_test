@@ -370,6 +370,7 @@ static void jobSendingVideo(uint32_t tid)
         if( result != size_i )
         {
           mylog::error(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
+          mylog::message(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_i));
@@ -398,6 +399,7 @@ static void jobSendingVideo(uint32_t tid)
         if( result != size_p )
         {
           mylog::error(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
+          mylog::message(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_p));
@@ -637,8 +639,14 @@ bool init_ntilsdk(std::pair<std::string, std::string> u)
   init.avBufferSetup.nMaxVideoSize = MAX_FRAME_SIZE_OF_PRIMARY_STREAM;	// max length of a video frame
   init.avBufferSetup.nMaxAudioSize = 1400;		// max length of an audio frame
 
+  int tx_buf_num = 6 * (32*1024) / 8;
+  int rx_buf_num = 6 * (32*1024) / 8;
+  NTIL_SetVideoRTPBuffer(rx_buf_num, tx_buf_num);
+
   if( !NTIL_Initialize2(&init, NULL) )
   {
+
+
     NTIL_StreamingCallback( cb_lpStartStreming, cb_lpCloseStreaming); //setup video stream callback
     NTIL_SetLocalAuthentication(data.szLocalAccount, data.szLocalPassword, 0);
     NTIL_StartRegisterProcess(data.szURL, data.szAccount, data.szPassword);

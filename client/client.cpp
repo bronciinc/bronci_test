@@ -26,12 +26,12 @@ R"(
     "I": {
       "size": 262144,
       "num": 1,
-      "interval": 5
+      "interval": 3
     },
     "P": {
       "size": 12288,
       "num": 29,
-      "interval": 5
+      "interval": 3
     }
   },
   "num": %d

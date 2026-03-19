@@ -1,3 +1,6 @@
+# Discussion Document
+[Project Discussion Document](https://docs.google.com/document/d/17FqQZBvIUeDZXvHoyFtpbia7zXl-SEKgaBjHs3DEvs0/edit?tab=t.0)
+
 # Build & Run
 
 ## Using Docker (Recommended)
