@@ -1,4 +1,17 @@
 # Build & Run
+
+## Using Docker (Recommended)
+A `docker-compose` environment is provided to easily build and test both the `device` and `client` together. The source code is mounted directly into the containers, so you can edit the code locally and test immediately.
+
+1. Ensure `docker` and `docker-compose` are installed.
+2. Run the following command in the project root:
+   ```bash
+   docker-compose up
+   ```
+Docker will automatically build the CMake projects for both `device` and `client` in their respective `.build` directories, and then execute them. The client will start slightly after the device is ready. Both logs will be printed to the console. 
+
+Press `Ctrl + C` to stop.
+
 ## device (WSL or linux)
 ```
 cd device
@@ -239,7 +252,7 @@ C2C_Message[16]<2470069678176,2470069656204> lineID:0
 NTIL_TerminateConnection(0)
 ```
 
-## interval value 10
+## interval value 1
 ### device
 ```
 (LOG) [main] NTIL ver.4.1.0.8-496-288
