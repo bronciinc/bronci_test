@@ -2,6 +2,17 @@
 //
 
 #include "client.h"
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+
+#if defined(__linux__) && defined(__GNUC__) && (__GNUC__ < 11)
+namespace std {
+    void __throw_bad_array_new_length() {
+        abort();
+    }
+}
+#endif
 
 #define NAME_DEVICE (char*)"O7XU-4WOP"
 
@@ -15,12 +26,12 @@ R"(
     "I": {
       "size": 262144,
       "num": 1,
-      "interval": 10
+      "interval": 5
     },
     "P": {
       "size": 12288,
       "num": 29,
-      "interval": 10
+      "interval": 5
     }
   },
   "num": %d

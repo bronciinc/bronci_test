@@ -2,10 +2,17 @@
 #include <iostream>
 #include <map>
 #include <functional>
+#if __has_include(<format>)
 #include <format>
+namespace strfmt = std;
+#else
+#include <fmt/format.h>
+namespace strfmt = fmt;
+#endif
 #include <thread>
 
 #include <signal.h>
+#include <unistd.h>
 
 #include <nlohmann/json.hpp>
 #include "crc.hpp"   // for boost::crc_32_type
@@ -22,18 +29,18 @@ using json = nlohmann::json;
 namespace mylog
 {
 template <typename... Args>
-void error(std::format_string<Args...> fmt, Args&&... args) {
+void error(strfmt::format_string<Args...> fmt, Args&&... args) {
     // Format the string
-    std::string message = std::format(fmt, std::forward<Args>(args)...);
+    std::string message = strfmt::format(fmt, std::forward<Args>(args)...);
 
     // Output to console (could also write to file, etc.)
     std::cout << "(ERR) " << message << '\n';
 }
 
 template <typename... Args>
-void message(std::format_string<Args...> fmt, Args&&... args) {
+void message(strfmt::format_string<Args...> fmt, Args&&... args) {
     // Format the string
-    std::string message = std::format(fmt, std::forward<Args>(args)...);
+    std::string message = strfmt::format(fmt, std::forward<Args>(args)...);
 
     // Output to console (could also write to file, etc.)
     std::cout << "(LOG) " << message << '\n';
@@ -68,35 +75,35 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
   int ret = 0;
   std::string out;
 
-  std::format_to(std::back_inserter(out), "[CB-lpMessage]");
+  strfmt::format_to(std::back_inserter(out), "[CB-lpMessage]");
   switch(message)
   {
   case C2C_REGISTER_DONE:
     // recv register done notification from svr
-    std::format_to(std::back_inserter(out), "[C2C_REGISTER_DONE]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_REGISTER_DONE]");
     break;
 
   case C2C_REGISTER_FAIL:
-    std::format_to(std::back_inserter(out), "[C2C_REGISTER_FAIL]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_REGISTER_FAIL]");
     if(arg1 == C2C_UNAUTHORIZED)
     {
       // register failed because of invalid password or account
-      std::format_to(std::back_inserter(out), "\n ...Registration failed! accout or password may be invalid");
+      strfmt::format_to(std::back_inserter(out), "\n ...Registration failed! accout or password may be invalid");
     }
     else if(arg1 == C2C_INVALID_ACCOUNT)
     {
       // register failed because account does not exist
-      std::format_to(std::back_inserter(out), "\n ...Registration failed! accout is invalid");
+      strfmt::format_to(std::back_inserter(out), "\n ...Registration failed! accout is invalid");
     }
     else if(arg1 == C2C_SRV_NO_RESP)
     {
       // register failed because server did not response
-      std::format_to(std::back_inserter(out), "\n ...Registration failed! server did not response");
+      strfmt::format_to(std::back_inserter(out), "\n ...Registration failed! server did not response");
     }
     else if(arg1 == C2C_SRV_DISCONNECT)
     {
       // register failed because server disconnected the connection
-      std::format_to(std::back_inserter(out), "\n ...Registration failed! server disconnected");
+      strfmt::format_to(std::back_inserter(out), "\n ...Registration failed! server disconnected");
     }
     // _c2c_register_status = message;
     // _c2c_register_reason = arg1;
@@ -104,7 +111,7 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
 
   case C2C_OUTGOING_STATE:
     // recv "outgoing call processing" notification from remote
-    std::format_to(std::back_inserter(out), "[C2C_OUTGOING_STATE]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_OUTGOING_STATE]");
     if(arg1 == C2C_PROCESSING)
     {
     }
@@ -114,7 +121,7 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
     break;
 
   case C2C_OUTGOING_ERROR:
-    std::format_to(std::back_inserter(out), "[C2C_OUTGOING_ERROR]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_OUTGOING_ERROR]");
     if(arg1 == C2C_UNAUTHORIZED)
     {
     // outgoing call event: account or password for IPCam is invalid
@@ -125,85 +132,85 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
     break;
 
   case C2C_INCOMING_STATE:
-    std::format_to(std::back_inserter(out), "[C2C_INCOMING_STATE]");
-    std::format_to(std::back_inserter(out), "\n ...event...from line {}", lineId);
+    strfmt::format_to(std::back_inserter(out), "[C2C_INCOMING_STATE]");
+    strfmt::format_to(std::back_inserter(out), "\n ...event...from line {}", lineId);
     // a new incoming call
     if(arg2)
     {
       C2C_CALL_INFO* cinfo = (C2C_CALL_INFO*)arg2;
-      std::format_to(std::back_inserter(out), "\n ...A new incomming call! From {}, to {}, custom-info is {}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szLocalId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
+      strfmt::format_to(std::back_inserter(out), "\n ...A new incomming call! From {}, to {}, custom-info is {}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szLocalId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
     }
     break;
 
   case C2C_REMOTE_RSP:
     // recv response from remote side
-    std::format_to(std::back_inserter(out), "[C2C_REMOTE_RSP]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_REMOTE_RSP]");
     break;
 
   case C2C_P2P_MODE:
     // media streaming starts in P2P mode
-    std::format_to(std::back_inserter(out), "[C2C_P2P_MODE]");
-    std::format_to(std::back_inserter(out), "\n ...Media session has been established in P2P mode!");
-    std::format_to(std::back_inserter(out), "\n ...socket={}, line={}", arg1, lineId);
+    strfmt::format_to(std::back_inserter(out), "[C2C_P2P_MODE]");
+    strfmt::format_to(std::back_inserter(out), "\n ...Media session has been established in P2P mode!");
+    strfmt::format_to(std::back_inserter(out), "\n ...socket={}, line={}", arg1, lineId);
 
     ret = NTIL_SendCommandByRtp(lineId, (char*)"CONNECTED", (char*)"C2C_P2P_MODE", true);
-    std::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
+    strfmt::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
     if(arg2)
     {
       C2C_CALL_INFO* cinfo = (C2C_CALL_INFO*)arg2;
-      std::format_to(std::back_inserter(out), "\n ...(arg2) peer={}, custom-info={}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
+      strfmt::format_to(std::back_inserter(out), "\n ...(arg2) peer={}, custom-info={}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
     }
     break;
 
   case C2C_RELAY_MODE:
     // media streaming starts in relay mode
-    std::format_to(std::back_inserter(out), "[C2C_RELAY_MODE]");
-    std::format_to(std::back_inserter(out), "\n ...Media session has been established in RELAY mode!");
-    std::format_to(std::back_inserter(out), "\n ...socket={}, line={}", arg1, lineId);
+    strfmt::format_to(std::back_inserter(out), "[C2C_RELAY_MODE]");
+    strfmt::format_to(std::back_inserter(out), "\n ...Media session has been established in RELAY mode!");
+    strfmt::format_to(std::back_inserter(out), "\n ...socket={}, line={}", arg1, lineId);
 
     ret = NTIL_SendCommandByRtp(lineId, (char*)"CONNECTED", (char*)"C2C_RELAY_MODE", true);
-    std::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
+    strfmt::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
     if(arg2)
     {
       C2C_CALL_INFO* cinfo = (C2C_CALL_INFO*)arg2;
-      std::format_to(std::back_inserter(out), "\n ...(arg2) peer={}, custom-info is {}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
+      strfmt::format_to(std::back_inserter(out), "\n ...(arg2) peer={}, custom-info is {}, auth-lv={}, line={}", cinfo->szPeerId, cinfo->szCustomInfo, cinfo->nAuthLevel, lineId);
     }
     break;
 
   case C2C_PACKET_LOSS:
     // packet loss event, call disconnect
-    std::format_to(std::back_inserter(out), "[C2C_PACKET_LOSS]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_PACKET_LOSS]");
     break;
 
   case C2C_CALL_TERMINATED:
     // call disconnect notification
-    std::format_to(std::back_inserter(out), "[C2C_CALL_TERMINATED]");
-    std::format_to(std::back_inserter(out), "\n ...Media session has been stopped ... peer={}, line={}", (char*)arg2, lineId);
+    strfmt::format_to(std::back_inserter(out), "[C2C_CALL_TERMINATED]");
+    strfmt::format_to(std::back_inserter(out), "\n ...Media session has been stopped ... peer={}, line={}", (char*)arg2, lineId);
     break;
 
   case C2C_RECV_BUSY:
     // outgoing call event: remote busy
-    std::format_to(std::back_inserter(out), "[C2C_RECV_BUSY]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_RECV_BUSY]");
     break;
 
   case C2C_RECV_404:
     // callee does not exist (offline), or call session no longer exists
-    std::format_to(std::back_inserter(out), "[C2C_RECV_404]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_RECV_404]");
     break;
 
   case C2C_NOANSWER:
     // outgoing call event: callsetup process has done, but remote has no further action
-    std::format_to(std::back_inserter(out), "[C2C_NOANSWER]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_NOANSWER]");
     break;
 
   case C2C_CONNECT_TIMEOUT:
     // incoming call event: wait P2P connection timeout
-    std::format_to(std::back_inserter(out), "[C2C_CONNECT_TIMEOUT]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_CONNECT_TIMEOUT]");
     break;
 
   case C2C_COMMAND_MESSAGE:
     // command MESSAGE from remote side
-    std::format_to(std::back_inserter(out), "[C2C_COMMAND_MESSAGE]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_COMMAND_MESSAGE]");
     {
       char *msg = (char*)arg1;
       char *peer = (char*)arg2;
@@ -212,7 +219,7 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
       if(msg==NULL || peer==NULL)
         break;
 
-      std::format_to(std::back_inserter(out), "\n ...from {}, msg={}, line={}", peer, msg, lineId);
+      strfmt::format_to(std::back_inserter(out), "\n ...from {}, msg={}, line={}", peer, msg, lineId);
 
       // reply with echo
       if(feedback)
@@ -224,18 +231,18 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
 
   case C2C_COMMAND_ACK:
     // command ACK from remote side
-    std::format_to(std::back_inserter(out), "[C2C_COMMAND_ACK]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_COMMAND_ACK]");
     {
       char *msg = (char*)arg1;
       char *peer = (char*)arg2;
       if(msg==NULL || peer==NULL)
         break;
-      std::format_to(std::back_inserter(out), "\n ...from {}, msg={}, line={}", peer, msg, lineId);
+      strfmt::format_to(std::back_inserter(out), "\n ...from {}, msg={}, line={}", peer, msg, lineId);
     }
     break;
 
   case C2C_COMMAND_ERROR:
-    std::format_to(std::back_inserter(out), "[C2C_COMMAND_ERROR]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_COMMAND_ERROR]");
     // error notification for previous sent command
     {
 
@@ -243,33 +250,33 @@ static void cb_lpMessage(unsigned int message, C2C_LONG arg1, C2C_LONG arg2, int
     break;
 
   case C2C_QOS_LEVEL_DOWN:
-    std::format_to(std::back_inserter(out), "[C2C_QOS_LEVEL_DOWN]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_QOS_LEVEL_DOWN]");
     break;
 
   case C2C_QOS_LEVEL_UP:
-    std::format_to(std::back_inserter(out), "[C2C_QOS_LEVEL_UP]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_QOS_LEVEL_UP]");
     ret = NTIL_SendCommandByRtp(lineId, (char*)"QOS_REPORT", (char*)"C2C_QOS_LEVEL_UP", true);
-    std::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
+    strfmt::format_to(std::back_inserter(out), "\n ...NTIL_SendCommandByRtp to line {} returns {}", lineId, ret);
     break;
 
   case C2C_SERVICE_READY:
-    std::format_to(std::back_inserter(out), "[C2C_SERVICE_READY]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_SERVICE_READY]");
     break;
 
   case C2C_INCOMING_DETECTED:
-    std::format_to(std::back_inserter(out), "[C2C_INCOMING_DETECTED]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_INCOMING_DETECTED]");
     break;
 
   case C2C_RTP_PRE_ALLOCATE:
-    std::format_to(std::back_inserter(out), "[C2C_RTP_PRE_ALLOCATE]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_RTP_PRE_ALLOCATE]");
     break;
 
   case C2C_LOGOUT_BY_SVR:
-    std::format_to(std::back_inserter(out), "[C2C_LOGOUT_BY_SVR]");
+    strfmt::format_to(std::back_inserter(out), "[C2C_LOGOUT_BY_SVR]");
     break;
 
   default:
-    std::format_to(std::back_inserter(out), "[UNKNOWN] [{}]{:#x}", lineId, message);
+    strfmt::format_to(std::back_inserter(out), "[UNKNOWN] [{}]{:#x}", lineId, message);
     break;
   }
 
@@ -295,7 +302,7 @@ static inline void sendState(int nLineId, int tid, const char* msg)
 {
   int nRet;
 
-  std::string tag = std::format("test_state.{:04x}",tid);
+  std::string tag = strfmt::format("test_state.{:04x}",tid);
   nRet = NTIL_SendCommandByRtp(nLineId, (char*)tag.c_str(), (char*)msg, true);
   mylog::message("  - (sendState) [{}] : {}", tid, msg);
 }

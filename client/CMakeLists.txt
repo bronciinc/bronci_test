@@ -10,23 +10,44 @@ project ("client")
 add_executable (client
   "client.cpp"
   "client.h"
-  "interface.cpp"
+  "Interface.cpp"
 )
 
-target_include_directories(client PRIVATE
-  ../common/include
-  ../common/lib_x86_win/c2c-src/include
-)
+if(WIN32)
+  target_include_directories(client PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/lib_x86_win/c2c-src/include
+  )
 
-target_link_directories(client PRIVATE
-  ../common/lib_x86_win/ZLIB-windows/static/win64
-)
+  target_link_directories(client PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/lib_x86_win/ZLIB-windows/static/win64
+  )
 
-target_link_libraries(client PRIVATE
-  c2c
-  wincmpt
-  netcpi
-)
+  target_link_libraries(client PRIVATE
+    c2c
+    wincmpt
+    netcpi
+  )
+else()
+  target_include_directories(client PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/lib_x86_linux/c2c-src/include
+  )
+
+  target_link_directories(client PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/lib_x86_linux/ZLIB-ubuntu/static
+  )
+
+  target_link_libraries(client PRIVATE
+    c2c
+    wincmpt
+    netcpi
+    pthread
+    rt
+    dl
+    m
+  )
+endif()
 
 target_compile_definitions(client PRIVATE
   _CRT_SECURE_NO_WARNINGS

@@ -13,6 +13,22 @@ cmake --build .build
 .build/device
 ```
 
+## Ubuntu 20.04 compatibility build notes
+
+On Ubuntu 20.04 (GCC 9.4 / older libstdc++), you may hit compatibility issues when building this project.
+
+- `<format>` may not be available in the default toolchain.
+- `pthread_*` symbols may fail to link if thread libraries are not linked explicitly.
+- Prebuilt static libraries may reference `std::__throw_bad_array_new_length()`, which is not exported on this toolchain.
+
+This repository already includes compatibility fixes for Ubuntu 20.04 in the `device` target, so the normal commands below should work:
+
+```
+cd device
+cmake -B .build .
+cmake --build .build
+```
+
 ## client (Windows)
 1. Run the Visual Studio (This code was tested with Visual Studio 2026 Community)
 2. Open the folder, "client" in VS

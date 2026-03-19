@@ -1,4 +1,21 @@
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <mutex>
+#include <chrono>
+#include <thread>
+
+typedef std::mutex CRITICAL_SECTION;
+inline void InitializeCriticalSection(CRITICAL_SECTION *cs) { }
+inline void EnterCriticalSection(CRITICAL_SECTION *cs) { cs->lock(); }
+inline void LeaveCriticalSection(CRITICAL_SECTION *cs) { cs->unlock(); }
+
+typedef unsigned long long ULONGLONG;
+inline ULONGLONG GetTickCount64() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+}
+inline void Sleep(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
+#endif
 #include <stdio.h>
 #include <string>
 #include <list>
@@ -6,6 +23,7 @@
 #include <vector>
 #include <limits>
 #include <map>
+#include <cstring>
 
 #include "libntil.h"
 #include "crc.hpp"
@@ -158,7 +176,7 @@ static void viewResult(void)
 
   if( test_captures.size() > cfg_gops )
   {
-    printf(" (error) captured gop size(%lld) is over %d\r\n", test_captures.size(), cfg_gops);
+    printf(" (error) captured gop size(%lld) is over %d\r\n", (long long)test_captures.size(), cfg_gops);
   }
 
   for( uint32_t gop_id=0; gop_id < cfg_gops; gop_id++)
@@ -248,7 +266,7 @@ static LINK_STATUS GetLinkStatus(int nLineID)
 //Brunci P2P Callback functions
 static void C2C_MessageCallback(unsigned int message, C2C_LONG wParam, C2C_LONG lParam, int lineId, void* arg_extra)
 {
-	printf("C2C_Message[%d]<%I64d,%I64d> lineID:%d\n", message, wParam, lParam, lineId);
+	printf("C2C_Message[%u]<%lld,%lld> lineID:%d\n", message, (long long)wParam, (long long)lParam, lineId);
 
 	C2C_MESSAGE* pMessage = new C2C_MESSAGE;
 	pMessage->lineId = lineId;
@@ -263,7 +281,7 @@ static void C2C_MessageCallback(unsigned int message, C2C_LONG wParam, C2C_LONG 
 
 static void C2C_CommandCallback(int line, C2C_LONG wParam, C2C_LONG lParam, char* tag, char* cmd_msg, void* arg_extra)
 {
-  printf("C2C_CommandCallback[%9lld](%d] %s:%s (0x%llx)\n", GetTickCount64(), line, tag, cmd_msg, wParam);
+  printf("C2C_CommandCallback[%9lld](%d] %s:%s (0x%llx)\n", (long long)GetTickCount64(), line, tag, cmd_msg, (unsigned long long)wParam);
 
   if ((tag == NULL) || (cmd_msg == NULL))
     return;

@@ -5,7 +5,9 @@
 
 #include <iostream>
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 bool Initialize(void);
 bool Connect(const char *pcUid, int* pnLineId);
