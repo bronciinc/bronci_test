@@ -1,0 +1,302 @@
+#################### Date: 2025-01-09 16:22:37 ####################
+* C2C SDK 4.1.0.7-496-285
+  - [All][Fix] windows 32-bits buffer overflow issue
+* NetCPI SDK 4.9.6
+  - [All][Fix] windows 32-bits buffer overflow issue
+* WinCompatibility SDK 285-153
+  - [All][Add] CJSON support output in int64 string
+
+#################### Date: 2024-10-17 03:02:53 ####################
+* AUDT SDK 4.1.2
+  - [All][Add] New error code
+
+#################### Date: 2024-03-06 09:50:20 ####################
+* Forwarding SDK 1.1.0
+  - [All][Add] Fwder_ChangeRemoteService()
+
+#################### Date: 2024-03-04 08:52:12 ####################
+* WinCompatibility SDK 284-153
+  - [All][Add] support multi-line for CIniReader
+* Forwarding SDK 1.0.9
+  - [All][Add] SO_EXCLUSIVEADDRUSE for reusable socket on Windows platform
+
+#################### Date: 2023-11-29 17:19:40 ####################
+* C2C SDK 4.1.0.6-495-283
+  - [All][Fix] SendCmdStreamByUdp() NULL pointer issue
+
+#################### Date: 2023-11-23 11:58:46 ####################
+* C2C SDK 4.1.0.5-495-283
+* WinCompatibility SDK 283-153
+* AUDT SDK 4.1.1
+  - [Optimize] the fast re-transmission algorithm
+  - [All][Add] version information log
+* Forwarding SDK 1.0.8
+  - [All][Fix] FWDER_PEERBUSY issue that cannot receive channel packets when FD_CLOSE is occurred in waiting FD_WRITE state
+  - [All][Fix] peer sockets of service side cannot be clean
+
+#################### Date: 2023-07-20 11:11:10 ####################
+* C2C SDK 4.1.0.4-495-283
+* WinCompatibility SDK 283-153
+  - [Optimize] add memory block size for GetIPv6MappedIPv4Prefix()
+
+#################### Date: 2023-03-08 19:09:21 ####################
+* C2C SDK 4.1.0.4-495-282
+  - [All][Add] Add SetVideoRTPBufferByLine() & SetAudioRTPBufferByLine()
+  - [All][Fix] DuplexRTP dosen't reset RecvFirstPkt Flag
+  - [All][Fix] DuplexRTP missing command when UDP Relay to P2P is happened
+* WinCompatibility SDK 282-153
+  - [All][Add] CJSON_SyntaxJQ(), CJSON2XML_EnableShowNull(), CJSON2XML into CJson
+  - [All][Fix] cjson_calc_element_num() bug when string contain JSON string in CJson
+  - [All][Fix] cjson_find_char() bug when string contain JSON string in CJson
+  - [Optimize] let UnixTimeDate use normalize 64-bits variable
+  - [All][Add] feature to disable auto changing line for DLogInfo
+  - [All][Add] c_strcatf() to stdc_string
+
+#################### Date: 2022-01-26 14:30:08 ####################
+* C2C SDK 4.1.0.1-495-274
+  - [Optimize] DONE message use different memory buffer
+* WinCompatibility SDK 274-153
+  - [All][Add] circular_buf (ring buffer) API
+  - [All][Add] circular_buf_read_ptr(), circular_buf_read_ptrc() for ring buffer API
+
+#################### Date: 2021-08-23 16:32:29 ####################
+* C2C SDK 4.1.0.0-495-272
+* WinCompatibility SDK 272-153
+  - [All][Add] Log Color
+  - [All][Add] a new implement ifaddrs method for Android
+
+#################### Date: 2021-08-03 03:54:52 ####################
+* C2C SDK 4.1.0.0-495-270
+  - [Remove] airstream library
+
+#################### Date: 2021-07-16 03:31:57 ####################
+* C2C SDK 4.1.0.0-495-270
+  - [All][Fix] API name NTIL_VideoPutInDataNoWaitingIDR to NTIL_VideoPutInDataNotCheckKeyFrame
+  - [All][Add] Mutex for DuplexRTP TCP data transmission
+  - [Optimize] DuplexRTP TCP relay mode
+* WinCompatibility SDK 270-153
+  - [All][Add] EndianRTPHeader.h & new API vlist
+  - [All][Add] CIniReader, stdc_string module
+
+#################### Date: 2020-08-14 00:02:34 ####################
+* C2C SDK 4.0.9.9-494-268-dev
+  - [Cam][Add] Add new API NTIL_VideoPutInDataNoWaitingIDR()
+  - [App][Fix] DuplexRTP ring sequence issue for exceeds delay bound
+  - [Optimize] DuplexRTP to avoid clear received ring buffer quickly
+* WinCompatibility SDK 268-153
+  - [All][Add] Add vlist, EndianRTPHeader.h
+
+#################### Date: 2020-07-02 03:56:47 ####################
+* C2C SDK 4.0.9.9-494-267-dev (beta)
+  - [Cam][Add] Add new API NTIL_VideoPutInDataNoWaitingIDR()
+  - [App][Fix] DuplexRTP ring sequence issue for exceeds delay bound
+  - [Optimize] DuplexRTP to avoid clear received ring buffer quickly
+
+#################### Date: 2020-06-30 11:45:35 ####################
+* C2C SDK 4.0.9.8-494-267-dev (beta)
+  - [Cam][Add] Add new API NTIL_VideoPutInDataNoWaitingIDR()
+
+#################### Date: 2020-06-04 05:53:54 ####################
+* C2C SDK 4.0.9.7-494-267 (Re-commit)
+  - [Optimize] Change the implement of allcoated memory pool setting for RTOS
+  - [App][Fix] AES encryption for local wakeup resend packet
+* WinCompatibility SDK 267-153
+  - [App][Add] Add a cross-platform allocate API in SRamAlloc.h (Unifiy sam_malloc, uos_malloc, malloc, and memory pool setting)
+
+#################### Date: 2020-06-03 03:12:42 ####################
+* C2C SDK 4.0.9.7-494-267
+  - [Optimize] Change the implement of allcoated memory pool setting for RTOS
+* WinCompatibility SDK 267-153
+  - [App][Add] Add a cross-platform allocate API in SRamAlloc.h (Unifiy sam_malloc, uos_malloc, malloc, and memory pool setting)
+
+#################### Date: 2020-05-22 16:12:56 ####################
+* C2C SDK 4.0.9.6-494-266
+  - [Optimize] Add AES encryption for local wakeup packet
+
+#################### Date: 2020-02-24 20:45:46 ####################
+* C2C SDK 4.0.9.5-494-266 (recommit ver.)
+  - [All][Fix] DispatchInfoEvent issue
+  - [All][Add] new API about extra information for video/audio transmission
+  - [All][Add] UNIX time checker for SP token expired time (* new commit part *)
+  - [Optimize] MultiLineWithQueue.c code to exclude RTP code, move NTIL_VideoPutInData/NTIL_AudioPutInData into MediaPutInData.c
+* WinCompatibility SDK 266-152
+  - [App][Add] New method about getting local IP for Android 
+
+#################### Date: 2020-02-21 01:04:07 ####################
+* C2C SDK 4.0.9.5-494-266
+  - [All][Fix] DispatchInfoEvent issue
+  - [All][Add] new API about extra information for video/audio transmission
+  - [Optimize] MultiLineWithQueue.c code to exclude RTP code, move NTIL_VideoPutInData/NTIL_AudioPutInData into MediaPutInData.c
+* WinCompatibility SDK 266-152
+  - [App][Add] New method about getting local IP for Android 
+
+#################### Date: 2019-12-23 03:56:26 ####################
+* C2C SDK 4.0.9.3-494-265
+  - [All][Fix] some threading of SDK cannot be released
+
+#################### Date: 2019-12-16 03:05:48 ####################
+* C2C SDK 4.0.9.2-494-265
+  - [QuickFix] Rebuild library
+
+#################### Date: 2019-12-15 22:55:45 ####################
+* C2C SDK 4.0.9.2-494-265
+  - [All][Fix] DuplexRTP socket list node cannot be release
+  - [APP][Add] UDP socket reusable for UDP socket on ANDROID
+
+#################### Date: 2019-12-03 21:18:48 ####################
+* C2C SDK 4.0.9.2-494-265-dev (alpha)
+  - [Optimize] Add UDP socket reusable for P2P on ANDROID
+
+#################### Date: 2019-11-26 10:06:17 ####################
+* Forward SDK 1.0.5
+  - [APP][Fix] Fwder_ChannelDisconnect() will close all service port
+
+#################### Date: 2019-11-19 18:04:03 ####################
+* C2C SDK 4.0.9.1-494-265
+  - [Optimize] DuplexRTP command memory usage
+  - [All][Fix] The issue about the timer of RTP-command doesen't start
+  - [APP][Fix] DuplexRTP cannot give frames immediately to upper layer from the queue in TCP relay case
+  - [Cam][Add] IoT branch cache to avoid the repeated message
+  - [ALL][Add] UDP blocking testing API (hidden API)
+
+#################### Date: 2019-11-14 22:27:07 ####################
+* C2C SDK 4.0.9.1-494-265-dev (alpha)
+  - [Optimize] DuplexRTP command memory usage
+  - [All][Fix] The issue about the timer of RTP-command doesen't start
+  - [APP][Fix] DuplexRTP cannot give frames immediately to upper layer from the queue in TCP relay case
+  - [Cam][Add] IoT branch cache to avoid the repeated message
+  - [ALL][Add] UDP blocking testing API (hidden API)
+
+#################### Date: 2019-09-30 22:42:00 ####################
+* C2C SDK 4.0.9.0-494-264
+  - [ HotFix ] Add more condition for releasing DuplexRTP module to avoid an unexpected crash issue
+  - [Optimize] DuplexRTP TCP memory buffer and temporary video/audio memory buffer are small when retransmit buffer is zero size
+
+#################### Date: 2019-09-10 00:54:55 ####################
+* C2C SDK 4.0.8.9-494-264
+  - [ HotFix ] Support WAIT_ARDT_ACK state to deal with C2C_P2P_MODE_CHANGING event
+  - [ HotFix ] Support WAIT_ARDT_ACK state to post C2C_ARDT_FAIL event to ARDT callback when C2C_P2P_MODE_CHANGING happened
+
+#################### Date: 2019-09-09 22:48:09 ####################
+* C2C SDK 4.0.8.8-494-264
+  - [All][Add] UID checker for checking UID format is illegal or not
+  - [All][Add] Peer received bit rate information in DuplexRTP, and add NTIL_GetPeerRtpRecvBitRate() to get it
+  - [Cam][Add] NTIL_SetStreamingTransBehavior() to adjust the behavior about sending streaming data
+  - [App][Add] New event C2C_P2P_MODE_CHANGING and auto relay processing to deal with P2P unsynchronized problem at caller side
+  - [App][Fix] DuplexRTP crash issue about re-send case
+  - [ HotFix ] Support ARDT state to deal with C2C_P2P_MODE_CHANGING event
+
+#################### Date: 2019-09-09 04:54:59 ####################
+* C2C SDK 4.0.8.8-494-264
+  - [All][Add] UID checker for checking UID format is illegal or not
+  - [All][Add] Peer received bit rate information in DuplexRTP, and add NTIL_GetPeerRtpRecvBitRate() to get it
+  - [Cam][Add] NTIL_SetStreamingTransBehavior() to adjust the behavior about sending streaming data
+  - [App][Add] New event C2C_P2P_MODE_CHANGING and auto relay processing to deal with P2P unsynchronized problem at caller side
+  - [App][Fix] DuplexRTP crash issue about re-send case
+
+#################### Date: 2019-07-15 21:45:30 ####################
+* C2C SDK 4.0.8.8-494-264-dev (alpha)
+  - Cancel the feature about "sending I-frame intermittently"
+  - Add NTIL_SetMediaThreadingPriority()
+
+#################### Date: 2019-07-11 05:11:57 ####################
+* C2C SDK 4.0.8.8-494-264-dev (alpha)
+  - Add NTIL_SetStreamingTransBehavior()
+  - Change include header file name for lwIP in DnsQueryLUT.c
+
+#################### Date: 2019-06-04 04:57:47 ####################
+* C2C SDK 4.0.8.7-494-264
+  - Fix a bug about recording list which avoid duplicated message
+  - Add an authentication cache for command message
+* WinCompatibility SDK 264-140
+  - Fix JSON parser checking issue about a string with comma
+
+#################### Date: 2019-05-29 04:59:38 ####################
+* C2C SDK 4.0.8.7-494-264-dev (alpha)
+  - Fix a bug about recording list which avoid duplicated message
+  - Add an authentication cache for command message
+* NetCPI SDK 494
+  - No update
+* WinCompatibility SDK 264-140
+  - Fix JSON parser checking issue about a string with comma
+
+#################### Date: 2019-05-16 22:44:23 ####################
+* C2C SDK 4.0.8.6-494-263
+  - New SDK version format: (libc2c version)-(libnetcpi version)-(libwincmpt version)[-git branch name]
+* NetCPI SDK 494
+  - Fix Start UDP server about zero of WSABUF
+* WinCompatibility SDK 263-140
+  - Cancel the wake up select method for lwIP
+
+#################### Date: 2019-05-16 00:00:00 ####################
+* C2C SDK 4.0.8.6-494-263
+  - Merge branch 'develop' into release
+  - Merge branch 'release' into master
+
+#################### Date: 2019-05-09 00:00:00 ####################
+* C2C SDK 4.0.8.6
+  - Add TCP KEEPALIVE for C2C
+  - Now enforce relay will auto try to switch to P2P case
+  - If test NAT fail at NAT_PROBE_P1 state, SDK will give UNKNOWN type not UDP_BLOCKED in order to enforce UDP relay not TCP relay
+  - Improve DuplexRTP none queue mode case
+* WinCompatibility -263-
+  - Fix Windows command pipe blocking issue
+  - Add SetTcpSocketKeepAlive(), GetDefaultIfName(), GetDefaultIfMacAddr()
+  - Use GetAdaptersAddress() method first when getting local IPv4 interface in Windows
+* WinCompatibility (RTOS)
+  - Add nsocket_getLIP2() about getting interface name
+  - Add uos_fgets()
+  - Change nsocket_is_multi_objects() method
+* CoHeader
+  - Add SEI, PPS slice feature to structure
+  - Add new API: MoveH264SliceWindow(), PrintH264SliceInfo()
+* NetCPI -494-
+  - Add new API NetSend2() about without IO Pending
+  - Change TFD_ERROR to TFD_CLOSE in TCP case for Poll, EPoll, Select.
+  - Improve mutil-object coding case for RTOS
+
+#################### Date: 2019-03-10 00:00:00 ####################
+* C2C SDK 4.0.8.5
+  - DuplexRTP support re-transmit in TCP Relay mode
+  - Add #include <stddef.h> at libntilParam.h
+* WinCompatibility 
+  - Fix auto detect IPv6 prefix issues
+  - Add new RTOS platform for ThreadX
+  - Add #undef __linux__ for LiteOS
+  
+#################### Date: 2019-03-08 00:00:00 ####################
+* C2C SDK 4.0.8.5
+  - Add new API: NTIL_SetWaitIoTAckExtendTimeout() 
+  
+#################### Date: 2019-02-27 00:00:00 ####################
+* C2C SDK 4.0.8.4
+  - Add NTIL_GetRtpRecvScore() for viewer
+  - Add more Log at PKL counter, and add a period to control printing swap socket Log
+  - Fix Register cannot change different SRV result and no back off process issue
+  - Fix IoT ACK special characters can not be exchanged
+
+#################### Date: 2019-01-18 00:00:00 ####################
+* C2C SDK 4.0.8.3
+  - Fix RTP buffer release issues caused by ARTP
+  - Fix DuplexRTP audio seq & timestamp empty issue  
+  
+#################### Date: 2019-01-15 00:00:00 ####################
+* EAC library rebuild for release mode
+* C2C SDK 4.0.8.2
+  - Add delayed COMMAND ACK API
+  
+#################### Date: 2019-01-08 00:00:00 ####################
+* Add EAC library for APP team
+* C2C SDK 4.0.8.1
+  - Optimized DuplexRTP transmission rate & add QoS/retransmit of audio
+  - More security when sending C2C protocol (random position of field for encryption)
+  - NTIL_GeneratePasswordMD5() can be called before C2C SDK init.
+  - Add delayed IoT ACK API, IoT receiver callback can get lineID and set the return code
+  - Add new IoT events: C2C_IOT_NIGHT_VISION_ON, C2C_IOT_NIGHT_VISION_OFF, and C2C_IOT_SOUND_DETECTED
+  - Add new event C2C_MAIN_TASK_BLOCKING for detecting dead main callback
+  - Add new API NTIL_EnableRunningCheckEvent() & new event C2C_RUNNING_CHECK 
+
+#################### Date: 2018-12-28 00:00:00 ####################
+* C2C SDK 4.0.7.4
+  - Cancel FPS limit value at receiver
+  

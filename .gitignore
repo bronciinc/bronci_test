@@ -1,0 +1,4 @@
+.vscode/
+.build/
+/client/.vs/
+/client/out/
