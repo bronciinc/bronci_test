@@ -15,6 +15,41 @@ Docker will automatically build the CMake projects for both `device` and `client
 
 Press `Ctrl + C` to stop.
 
+## Using Docker on macOS M1 (Apple Silicon)
+If you are on an Apple Silicon Mac, you cannot run x86 virtual machines directly. Instead, you can use the provided x86 Docker Compose configuration to simulate an `x86_64` environment:
+
+1. Build and enter the interactive x86 container (use `--build` for the first time or when Dockerfile changes):
+   ```bash
+   docker-compose -f docker-compose.x86.yml run --build --rm builder
+   ```
+   *For daily development (faster, without rebuilding):*
+   ```bash
+   docker-compose -f docker-compose.x86.yml run --rm builder
+   ```
+
+2. Once inside the container, configure and build the project:
+   ```bash
+   cd device
+   cmake -B .build .
+   cmake --build .build
+   ```
+3. Run the compiled application:
+   ```bash
+   .build/device
+   ```
+
+### Open another terminal in the running container
+If you want to build in one terminal and run/monitor in another:
+1. Open a new terminal on your Mac.
+2. Find the running container ID or name:
+   ```bash
+   docker ps
+   ```
+3. Execute bash in that container (replace `<container_name_or_id>` with the actual name or ID):
+   ```bash
+   docker exec -it <container_name_or_id> /bin/bash
+   ```
+
 ## device (WSL or linux)
 ```
 cd device
