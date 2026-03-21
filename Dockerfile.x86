@@ -1,0 +1,16 @@
+# 指定平台為 linux/amd64，讓 macOS M1 模擬 x86 架構
+FROM --platform=linux/amd64 ubuntu:20.04
+
+# 避免安裝套件時跳出 timezone 或鍵盤設定等互動式視窗卡住編譯
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 安裝 C++ 編譯必備的工具鏈 (包含 CMake, gcc, g++, make 等)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    cmake \
+    gdb \
+    && rm -rf /var/lib/apt/lists/*
+
+# 設定進入 container 後的預設目錄
+WORKDIR /workspace

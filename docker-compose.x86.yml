@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  builder:
+    # 再次確保服務執行於 x86 平台
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.x86
+    volumes:
+      # 將當前主機的整包專案掛載到容器內的 /workspace，讓你改完 code 可以立刻在容器內編譯
+      - ./:/workspace
+    stdin_open: true # 對應 docker run 的 -i (保持 stdin 開啟)
+    tty: true        # 對應 docker run 的 -t (分配終端機)
+    command: /bin/bash
