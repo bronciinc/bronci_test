@@ -10,6 +10,8 @@ namespace strfmt = std;
 namespace strfmt = fmt;
 #endif
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 
 #include <signal.h>
 #include <unistd.h>
@@ -21,8 +23,6 @@ namespace strfmt = fmt;
 
 #define MAX_FRAME_SIZE_OF_PRIMARY_STREAM ((512+1024)*1024)		// 1.5 MB
 #define ALLOWABLE_MAX_LINE        12
-
-#define SLEEP(x)    sleep(x)
 
 using json = nlohmann::json;
 
@@ -54,6 +54,31 @@ void message(std::string_view message) {
 
 std::map<int, json> test_config;
 int lineID;
+
+struct {
+  std::mutex mtx;
+  std::condition_variable cv;
+  uint32_t test_tid;
+
+  void setValue(uint32_t value)
+  {
+    std::lock_guard<std::mutex> lock(mtx);
+    test_tid = value;
+
+    cv.notify_one();
+  }
+
+  void wait(void)
+  {
+    std::unique_lock<std::mutex> lk(mtx);
+    cv.wait(lk, [this]{ return test_tid; });
+  }
+
+  void clear(void)
+  {
+    test_tid = 0;
+  }
+} cv;
 
 inline bool startsWith(const std::string& str, const std::string& prefix) { return str.compare(0, prefix.size(), prefix) == 0; }
 
@@ -307,33 +332,18 @@ static inline void sendState(int nLineId, int tid, const char* msg)
   mylog::message("  - (sendState) [{}] : {}", tid, msg);
 }
 
-static void jobSendingVideo(uint32_t tid)
+static inline void sendAck(int nLineId, int gop, const char* msg)
 {
-  auto it = test_config.find(tid);
-  json& data = it->second;
+  int nRet;
 
-  int result = 0;
-  int size_i = data["frame"]["I"]["size"];
-  int num_i = data["frame"]["I"]["num"];
-  int interval_i = data["frame"]["I"]["interval"];
-  int size_p = data["frame"]["P"]["size"];
-  int num_p = data["frame"]["P"]["num"];
-  int interval_p = data["frame"]["P"]["interval"];
-  int send = data["num"];
+  std::string tag = strfmt::format("test_ack.{:04x}",gop);
+  nRet = NTIL_SendCommandByRtp(nLineId, (char*)tag.c_str(), (char*)msg, true);
+  mylog::message("  - (sendAck) [{}] : {}", gop, msg);
+}
 
-  mylog::message("  TID={}, num={}", tid, send);
-  mylog::message("  I-frame.size={}, num={}, interval={}", size_i, num_i, interval_i);
-  mylog::message("  P-frame.size={}, num={}, interval={}", size_p, num_p, interval_p);
 
-  uint16_t ts_frame=0;
-  uint16_t frame_id=0;
-  uint16_t gop_id=0;
-  const uint16_t fps=0;
-  const uint16_t bps=0;
-
-  uint8_t* pbuff_i = new uint8_t[size_i];
-  uint8_t* pbuff_p = new uint8_t[size_p];
-
+static void makeFrame(uint8_t* pbuff, int size_i, int pattern, uint32_t tid, uint16_t gop_id, uint16_t fnum)
+{
   struct frame_t{
     uint32_t tid;	// test ID
     uint32_t gop;	// gop # : 0-based
@@ -341,86 +351,139 @@ static void jobSendingVideo(uint32_t tid)
     uint32_t crc32;	// crc32
   };
 
+  memset( pbuff, pattern, size_i);
+
+  frame_t* pheader = (frame_t*)pbuff;
+
+  pheader->tid = tid;
+  pheader->gop = gop_id;
+  // pheader1->fid = pheader->fid = cnt_i;
+  pheader->fid = fnum;
+  pheader->crc32 = 0;
+
+  // CRC32
+  boost::crc_32_type crc32;
+  crc32.process_bytes( pheader+1, size_i-sizeof(frame_t));
+  pheader->crc32 = crc32.checksum();
+}
+
+template <bool IsIFrame>
+static bool sendFrame(const uint32_t tid, const uint16_t gop_id, uint16_t& fid, const uint16_t ts_frame)
+{
+  auto it = test_config.find(tid);
+  if (it == test_config.end()) {
+    return false;
+  }
+
+  const json& data = it->second;
+
+  constexpr const char* frame_key = IsIFrame ? "I" : "P";
+  const auto& frame_data = data["frame"][frame_key];
+
+  const int size = frame_data["size"];
+  const int num = frame_data["num"];
+  const int interval = frame_data["interval"];
+
+  std::unique_ptr<uint8_t[]> pbuff(new uint8_t[size]);
+
+  constexpr uint8_t marker_base = IsIFrame ? 0xE0 : 0xC0;
+
+  for (int cnt = 0; cnt < num; ++cnt)
+  {
+    makeFrame(pbuff.get(), size, marker_base + cnt, tid, gop_id, fid++);
+
+    const uint16_t fps=0;
+    const uint16_t bps=0;
+    const unsigned int frame_id=0;
+
+    int result;
+
+    do
+    {
+      result = NTIL_VideoPutInData( lineID, pbuff.get(), size, FRAME_TYPE_IDR, ts_frame, frame_id, gop_id, fps, bps, H264);
+      if( result != size )
+      {
+        mylog::error(" -NTIL_VideoPutInData(): result={}, gop={}, ts={}: ", result, gop_id, ts_frame);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      }
+    } while (result != size);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+  }
+
+  return true;
+}
+
+// for synchronization
+std::binary_semaphore wait_ack{0};
+
+
+static void jobSendingVideo(uint32_t tid)
+{
+  auto it = test_config.find(tid);
+  json& data = it->second;
+
+  int size_i = data["frame"]["I"]["size"];
+  int num_i = data["frame"]["I"]["num"];
+  int interval_i = data["frame"]["I"]["interval"];
+  int size_p = data["frame"]["P"]["size"];
+  int num_p = data["frame"]["P"]["num"];
+  int interval_p = data["frame"]["P"]["interval"];
+  int send = data["num"];
+  int ack = data["ack"];
+  int ip = data["ip"];
+
+  mylog::message("  TID={}, num={}", tid, send);
+  mylog::message("  I-frame.size={}, num={}, interval={}", size_i, num_i, interval_i);
+  mylog::message("  P-frame.size={}, num={}, interval={}", size_p, num_p, interval_p);
+
+  uint16_t ts_frame=0;
+  uint16_t gop_id=0;
+  uint16_t fid;
+
   sendState( lineID, tid, "start");
+
   for( int cnt_send = 0; cnt_send < send; cnt_send++)
   {
     mylog::message("  Sending... #{}", cnt_send);
 
-    // I-frame
-    for( int cnt_i = 0; cnt_i < num_i; cnt_i++)
+    fid = 0;
+
+    if( ip )
     {
-      memset( pbuff_i, 0xE0+cnt_i, size_i);
-
-      frame_t* pheader = (frame_t*)pbuff_i;
-      frame_t* pheader1 = (frame_t*)pbuff_i + 1;
-
-      pheader1->tid = pheader->tid = tid;
-      pheader1->gop = pheader->gop = gop_id;
-      pheader1->fid = pheader->fid = cnt_i;
-      pheader1->crc32 = pheader->crc32 = 0;
-
-      // CRC32
-      boost::crc_32_type crc32;
-      crc32.process_bytes( pheader+1, size_i-sizeof(frame_t));
-      pheader->crc32 = crc32.checksum();
-
-      do
-      {
-        result = NTIL_VideoPutInData( lineID, pbuff_i, size_i, FRAME_TYPE_IDR, ts_frame, frame_id, gop_id, fps, bps, H264);
-        if( result != size_i )
-        {
-          mylog::error(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
-          mylog::message(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(interval_i));
-        frame_id++;
-      } while (result != size_i);
+      // I-frame
+      sendFrame<true>( tid, gop_id, fid, ts_frame);
+      // P-frame
+      sendFrame<false>( tid, gop_id, fid, ts_frame);
+    }
+    else
+    {
+      // P-frame
+      sendFrame<true>( tid, gop_id, fid, ts_frame);
+      // I-frame
+      sendFrame<false>( tid, gop_id, fid, ts_frame);
     }
 
-    // P-frame
-    for( int cnt_p = 0; cnt_p < num_p; cnt_p++)
+    if( ack )
     {
-      memset( pbuff_p, 0xC0+cnt_p, size_p);
-
-      frame_t* pheader = (frame_t*)pbuff_p;
-      pheader->tid = tid;
-      pheader->gop = gop_id;
-      pheader->fid = num_i+cnt_p;
-
-      // CRC32
-      boost::crc_32_type crc32;
-      crc32.process_bytes( pheader+1, size_p-sizeof(frame_t));
-      pheader->crc32 = crc32.checksum();
-
-      do
-      {
-        result = NTIL_VideoPutInData( lineID, pbuff_p, size_p, FRAME_TYPE_P, ts_frame, frame_id, gop_id, fps, bps, H264);
-        if( result != size_p )
-        {
-          mylog::error(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
-          mylog::message(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(interval_p));
-        frame_id++;
-      } while (result != size_p);
+      sendAck( lineID, gop_id, "ACK");
+      wait_ack.acquire();
     }
 
     gop_id++;
     ts_frame++;
   }
 
-  delete [] pbuff_i;
-  delete [] pbuff_p;
+  std::this_thread::sleep_for(std::chrono::seconds(30));
 
-  sendState( lineID, tid, "done");
   mylog::message("  Sending... DONE");
+  sendState( lineID, tid, "done");
 
-  mylog::message("  Waiting 1secs to terminate this connection");
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  // mylog::message("  Waiting 1secs to terminate this connection");
+  // std::this_thread::sleep_for(std::chrono::seconds(1));
 
-  NTIL_TerminateConnection( lineID );
+  // NTIL_TerminateConnection( lineID );
 
   mylog::message(" (jobSendingVideo) done");
 }
@@ -471,9 +534,7 @@ static void cbcmd_test_spec(C2C_LONG arg1, char* tag, char* cmd_msg, void* arg_e
 
     test_config[tid] = data;
 
-    std::thread t( jobSendingVideo, tid);
-
-    t.detach();
+    cv.setValue(tid);
   }
 
   catch(const std::exception& e)
@@ -504,11 +565,23 @@ static void cbcmd_qos_report(C2C_LONG arg1, char* tag, char* cmd_msg, void* arg_
     mylog::message("  [CB-lpCommand] type is different. tag={} msg={}, extra={:p}, type={:#x}", tag, cmd_msg, arg_extra, arg1);
 }
 
+static void cbcmd_test_ack_ack(C2C_LONG arg1, char* tag, char* cmd_msg, void* arg_extra)
+{
+  if( arg1 == RTP_COMMAND_ACK )
+  {
+    wait_ack.release();
+    mylog::message("  [CB-lpCommand][ACK] tag={} msg={}, extra={:p}", tag, cmd_msg, arg_extra);
+  }
+  else
+    mylog::message("  [CB-lpCommand] type is different. tag={} msg={}, extra={:p} type={:#x}", tag, cmd_msg, arg_extra, arg1);
+}
+
 static std::map<std::string, std::function<void(C2C_LONG arg1, char* tag, char* cmd_msg, void* arg_extra)>> cmd_tag =
 {
   {"CONNECTED", 	cbcmd_connected},
   {"test_spec.", 	cbcmd_test_spec},
   {"test_state.", cbcmd_test_state_ack},
+  {"test_ack.",   cbcmd_test_ack_ack},
   {"QOS_REPORT",  cbcmd_qos_report}
 };
 
@@ -557,7 +630,7 @@ static void SignalRequestExit(int sigNum)
   {
     NTIL_StopAllMediaSession();
 
-    SLEEP(1);
+    std::this_thread::sleep_for(std::chrono::seconds(1));
   }
 
   NTIL_DeInitialize();
@@ -645,8 +718,6 @@ bool init_ntilsdk(std::pair<std::string, std::string> u)
 
   if( !NTIL_Initialize2(&init, NULL) )
   {
-
-
     NTIL_StreamingCallback( cb_lpStartStreming, cb_lpCloseStreaming); //setup video stream callback
     NTIL_SetLocalAuthentication(data.szLocalAccount, data.szLocalPassword, 0);
     NTIL_StartRegisterProcess(data.szURL, data.szAccount, data.szPassword);
@@ -686,7 +757,12 @@ int childmain(std::pair<std::string, std::string> u)
 
   for(;;)
   {
-    SLEEP(10);
+    mylog::message("[main] wait value");
+
+    cv.wait();
+
+    jobSendingVideo(cv.test_tid);
+    cv.clear();
   }
 
   mylog::message("[main] p2p daemon is finalizing...");

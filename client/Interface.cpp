@@ -16,6 +16,7 @@ inline ULONGLONG GetTickCount64() {
 }
 inline void Sleep(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 #endif
+
 #include <stdio.h>
 #include <string>
 #include <list>
@@ -24,6 +25,8 @@ inline void Sleep(int ms) { std::this_thread::sleep_for(std::chrono::millisecond
 #include <limits>
 #include <map>
 #include <cstring>
+#include <thread>
+#include <functional>
 
 #include "libntil.h"
 #include "crc.hpp"
@@ -77,7 +80,7 @@ char m_pcRegID[SIZE_REG_BUFF];
 char m_pcRegPassword[SIZE_REG_BUFF];
 unsigned long m_ulCmdNumber;
 
-LINK_STATUS link[8];
+LINK_STATUS linkStatus[8];
 
 #define NUM_CONNECTION  0
 
@@ -109,6 +112,7 @@ ULONGLONG test_start;
 ULONGLONG test_done;
 
 extern const uint32_t cfg_gops;
+extern const uint32_t cfg_frames;
 
 
 static void dumpGop_v(captre_v& result)
@@ -205,14 +209,15 @@ static void viewResult(void)
   }
 
   double elpased = (double)(test_done - test_start)/1000.;
+  const uint32_t total = cfg_gops*cfg_frames;
 
   printf("============================================\r\n");
   printf("         RESULT                             \r\n");
   printf("============================================\r\n");
   printf(" - CMD time diff=%5.2fs (%lld ~ %lld)\r\n", elpased, test_start, test_done);
-  printf(" - expect : frames=%d\r\n", cfg_gops*30);
+  printf(" - expect : frames=%d\r\n", total);
   printf(" - received : frames=%lld, fps=%5.2f\r\n", sum_frames, sum_frames/elpased);
-  printf(" - loss frames=%lld, ratio=%5.1f%%\r\n", cfg_gops*30 - sum_frames, float(cfg_gops*30 - sum_frames)*100./(cfg_gops*30));
+  printf(" - loss frames=%lld, ratio=%5.1f%%\r\n", total - sum_frames, float(total - sum_frames)*100./total);
 
   printf(" - DONE\r\n");
 }
@@ -253,12 +258,12 @@ static int getTID(std::string tag)
 
 static void SetLinkStatus(int nLineID, LINK_STATUS ucStatus)
 {
-  link[nLineID] = ucStatus;
+  linkStatus[nLineID] = ucStatus;
 }
 
 static LINK_STATUS GetLinkStatus(int nLineID)
 {
-  return link[nLineID];
+  return linkStatus[nLineID];
 }
 
 
@@ -302,6 +307,8 @@ static void C2C_CommandCallback(int line, C2C_LONG wParam, C2C_LONG lParam, char
     {
       test_done = GetTickCount64();
       printf("STOP : TID=%d (%lld)\r\n", getTID(tag), test_done);
+
+      viewResult();
     }
   }
 
@@ -402,6 +409,8 @@ void Disconnect(int nLineId);
 
 static bool MessageHandler(void)
 {
+  bool ret = false;
+
   if (g_listMessage.size())
   {
     C2C_MESSAGE* pMessage;
@@ -435,7 +444,6 @@ static bool MessageHandler(void)
 
     case C2C_CALL_TERMINATED:
       printf("[C2C_CALL_TERMINATED]\r\n");
-      viewResult();
       [[fallthrough]];
     case C2C_NOANSWER:
       printf("[C2C_NOANSWER]\r\n");
@@ -507,23 +515,20 @@ static bool MessageHandler(void)
     }
 
     delete pMessage;
-  }
-  else
-  {
-    Sleep(1);
+
+    ret = true;
   }
 
-  return true;
+  return ret;
 }
 
-static void DataHandler(void)
+static bool DataHandler(void)
 {
   int nPendingDataSize = (int)g_listData.size();
 
   if (nPendingDataSize == 0)
   {
-    Sleep(1);
-    return;
+    return false;
   }
 
   for (int i = 0;i < nPendingDataSize;i++)
@@ -544,8 +549,20 @@ static void DataHandler(void)
 
     delete pData;
   }
+
+  return true;
 }
 
+static void LoopHandler(std::function<bool(void)> cond)
+{
+  while( cond() )
+  {
+    MessageHandler();
+    DataHandler();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+}
 
 bool Connect(const char *pcUid, int* pnLineId)
 {
@@ -575,16 +592,9 @@ bool Connect(const char *pcUid, int* pnLineId)
 
     ULONGLONG ullTimedoutTick = GetTickCount64() + (10 * 1000);
 
-    while (ullTimedoutTick > GetTickCount64())
-    {
-      if( GetLinkStatus( *pnLineId ) != LINK_STATUS::LINKING )
-      {
-        break;
-      }
-
-      MessageHandler();
-      DataHandler();
-    }
+    LoopHandler(
+      [ullTimedoutTick, pnLineId](void){ return (ullTimedoutTick > GetTickCount64()) && ( GetLinkStatus( *pnLineId ) == LINK_STATUS::LINKING ); }
+    );
 
     if( GetLinkStatus( *pnLineId ) > LINK_STATUS::LINKING )
     {
@@ -601,7 +611,7 @@ void Disconnect(int nLineId)
   {
     printf("NTIL_TerminateConnection(%d)\n", nLineId);
 
-    link[nLineId] = LINK_STATUS::UNLINKED;
+    linkStatus[nLineId] = LINK_STATUS::UNLINKED;
 
     if (NTIL_TerminateConnection(nLineId) != 0)
     {
@@ -634,11 +644,9 @@ bool SendTestCommand(int nLineId, char* pucData, size_t ulLength)
   return bReturn;
 }
 
-void TestLoop(int nLineId)
+void MainLoop(int nLineId)
 {
-  while( GetLinkStatus( nLineId ) != LINK_STATUS::UNLINKED )
-  {
-    MessageHandler();
-    DataHandler();
-  }
+  LoopHandler(
+    [nLineId](void){ return ( GetLinkStatus( nLineId ) != LINK_STATUS::UNLINKED ); }
+  );
 }

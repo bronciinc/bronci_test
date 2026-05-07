@@ -14,4 +14,4 @@ bool Connect(const char *pcUid, int* pnLineId);
 void Disconnect(int nLineId);
 
 bool SendTestCommand(int nLineId, char* pucData, size_t ulLength);
-void TestLoop(int nLineId);
+void MainLoop(int nLineId);

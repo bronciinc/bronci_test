@@ -2,6 +2,8 @@
 //
 
 #include "client.h"
+
+#include <cstdint>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
@@ -16,6 +18,12 @@ namespace std {
 
 #define NAME_DEVICE (char*)"O7XU-4WOP"
 
+constexpr uint32_t cfg_i_num = 1;
+constexpr uint32_t cfg_p_num = 15;
+
+extern const uint32_t cfg_frames;
+const uint32_t cfg_frames = cfg_i_num + cfg_p_num;
+
 extern const uint32_t cfg_gops;
 const uint32_t cfg_gops = 50;
 
@@ -24,17 +32,19 @@ R"(
 {
   "frame": {
     "I": {
-      "size": 262144,
-      "num": 1,
-      "interval": 10
+      "size": 131072,
+      "num": %d,
+      "interval": 4
     },
     "P": {
-      "size": 12288,
-      "num": 29,
-      "interval": 10
+      "size": 16384,
+      "num": %d,
+      "interval": 1
     }
   },
-  "num": %d
+  "num": %d,
+  "ip" : 1,
+  "ack": 0
 }
 )";
 
@@ -51,10 +61,10 @@ int main()
     exit(1);
   }
 
-  sprintf( msg_json, msg_template, cfg_gops);
+  sprintf( msg_json, msg_template, cfg_i_num, cfg_p_num, cfg_gops);
   if( true == SendTestCommand( m_nLineID, msg_json, strlen(msg_json)) )
   {
-    TestLoop( m_nLineID );
+    MainLoop( m_nLineID );
   }
   else
   {
