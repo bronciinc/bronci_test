@@ -12,6 +12,9 @@ namespace strfmt = fmt;
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#if __has_include(<semaphore>)
+#include <semaphore>
+#endif
 
 #include <signal.h>
 #include <unistd.h>
@@ -54,6 +57,34 @@ void message(std::string_view message) {
 
 std::map<int, json> test_config;
 int lineID;
+
+#if defined(__cpp_lib_semaphore) && (__cpp_lib_semaphore >= 201907L)
+using wait_ack_semaphore_t = std::binary_semaphore;
+#else
+class wait_ack_semaphore_t {
+public:
+  explicit wait_ack_semaphore_t(int desired) : available_(desired > 0) {}
+
+  void release()
+  {
+    std::lock_guard<std::mutex> lock(mtx_);
+    available_ = true;
+    cv_.notify_one();
+  }
+
+  void acquire()
+  {
+    std::unique_lock<std::mutex> lock(mtx_);
+    cv_.wait(lock, [this]{ return available_; });
+    available_ = false;
+  }
+
+private:
+  std::mutex mtx_;
+  std::condition_variable cv_;
+  bool available_;
+};
+#endif
 
 struct {
   std::mutex mtx;
@@ -416,7 +447,7 @@ static bool sendFrame(const uint32_t tid, const uint16_t gop_id, uint16_t& fid, 
 }
 
 // for synchronization
-std::binary_semaphore wait_ack{0};
+wait_ack_semaphore_t wait_ack{0};
 
 
 static void jobSendingVideo(uint32_t tid)
