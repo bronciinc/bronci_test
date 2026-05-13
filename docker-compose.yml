@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 設備端服務
+  device:
+    build: .
+    container_name: bronci_device
+    # 將本機的程式碼目錄掛載到容器內的 /app
+    volumes:
+      - .:/app
+    # 進入 device 目錄中編譯並執行
+    command: bash -c "cd device && cmake -B .build . && cmake --build .build && ./.build/device"
+    # 使用 host 網路模式可以避免一些 P2P/RTP 在 NAT 穿透上的複雜網路問題
+    network_mode: host
+
+  # 客戶端服務
+  client:
+    build: .
+    container_name: bronci_client
+    depends_on:
+      - device
+    volumes:
+      - .:/app
+    # 進入 client 目錄中編譯並執行 (延遲 2 秒確保 device 先準備好)
+    command: bash -c "cd client && cmake -B .build . && cmake --build .build && sleep 2 && ./.build/client"
+    # 同樣為測試方便使用 host 網路，若需要模擬外網環境可改用預設 bridge 並轉發 Port
+    network_mode: host
