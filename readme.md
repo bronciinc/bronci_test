@@ -15,6 +15,18 @@ Docker will automatically build the CMake projects for both `device` and `client
 
 Press `Ctrl + C` to stop.
 
+### Open another terminal in the running container
+If you want to access the running container from another terminal:
+1. Open a new terminal window.
+2. Find the running container ID or name:
+   ```bash
+   docker ps
+   ```
+3. Execute bash in that container:
+   ```bash
+   docker exec -it <container_name_or_id> /bin/bash
+   ```
+
 ## Using Docker on macOS M1 (Apple Silicon)
 If you are on an Apple Silicon Mac, you cannot run x86 virtual machines directly. Instead, you can use the provided x86 Docker Compose configuration to simulate an `x86_64` environment:
 
