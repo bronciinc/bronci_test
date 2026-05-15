@@ -76,6 +76,20 @@ cmake --build .build
 .build/device
 ```
 
+## client (WSL or linux)
+```
+cd client
+
+# configuration
+cmake -B .build .
+
+# build
+cmake --build .build
+
+# run
+.build/device
+```
+
 ## Ubuntu 20.04 compatibility build notes
 
 On Ubuntu 20.04 (GCC 9.4 / older libstdc++), you may hit compatibility issues when building this project.
