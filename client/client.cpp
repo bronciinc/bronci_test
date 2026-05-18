@@ -19,7 +19,7 @@ namespace std {
 #define NAME_DEVICE (char*)"O7XU-4WOP"
 
 constexpr uint32_t cfg_i_num = 1;
-constexpr uint32_t cfg_p_num = 15;
+constexpr uint32_t cfg_p_num = 1;
 
 extern const uint32_t cfg_frames;
 const uint32_t cfg_frames = cfg_i_num + cfg_p_num;
@@ -32,14 +32,14 @@ R"(
 {
   "frame": {
     "I": {
-      "size": 131072,
+      "size": 102400,
       "num": %d,
-      "interval": 4
+      "interval": 10
     },
     "P": {
-      "size": 16384,
+      "size": 102400,
       "num": %d,
-      "interval": 1
+      "interval": 10
     }
   },
   "num": %d,
