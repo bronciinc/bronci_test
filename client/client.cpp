@@ -31,7 +31,7 @@ R"(
     "P": {
       "size": 136000,
       "num": 29,
-      "interval": 10
+      "interval": 29
     }
   },
   "num": %d

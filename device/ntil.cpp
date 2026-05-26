@@ -413,6 +413,11 @@ static void jobSendingVideo(uint32_t tid)
     ts_frame++;
   }
 
+  ts_frame--;
+  // Dummy Frame to trigger the sending of previous frames in case some frames are still in queue of SDK
+  result = NTIL_VideoPutInData( lineID, pbuff_p, size_p, FRAME_TYPE_P, ts_frame, frame_id, gop_id, fps, bps, H264);
+  mylog::message(" -NTIL_VideoPutInData() I {} ", frame_id);
+
   delete [] pbuff_i;
   delete [] pbuff_p;
 
