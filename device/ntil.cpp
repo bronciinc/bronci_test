@@ -373,6 +373,7 @@ static void jobSendingVideo(uint32_t tid)
           mylog::message(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+        mylog::message(" -NTIL_VideoPutInData() I {} ", frame_id);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_i));
         frame_id++;
       } while (result != size_i);
@@ -402,6 +403,7 @@ static void jobSendingVideo(uint32_t tid)
           mylog::message(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
+        mylog::message(" -NTIL_VideoPutInData() P {} ", frame_id);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_p));
         frame_id++;
       } while (result != size_p);
@@ -413,6 +415,11 @@ static void jobSendingVideo(uint32_t tid)
 
   delete [] pbuff_i;
   delete [] pbuff_p;
+
+  while(NTIL_IsAnyMediaSessionAlive()) {
+    mylog::message("  Waiting for all media sessions to be stopped...");
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
 
   sendState( lineID, tid, "done");
   mylog::message("  Sending... DONE");

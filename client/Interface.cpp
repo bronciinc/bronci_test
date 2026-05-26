@@ -325,6 +325,8 @@ static void C2C_VideoCallback(int line, unsigned char* data, int len, int payloa
   {
     C2C_DATA* pData = new C2C_DATA;
 
+    printf("C2C_VideoCallback(): seq %d\n", seq);
+
     pData->data = new unsigned char[len];
     if (pData->data)
     {

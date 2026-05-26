@@ -17,21 +17,21 @@ namespace std {
 #define NAME_DEVICE (char*)"O7XU-4WOP"
 
 extern const uint32_t cfg_gops;
-const uint32_t cfg_gops = 50;
+const uint32_t cfg_gops = 1;
 
 const char* msg_template =
 R"(
 {
   "frame": {
     "I": {
-      "size": 262144,
+      "size": 136000,
       "num": 1,
-      "interval": 3
+      "interval": 10
     },
     "P": {
-      "size": 12288,
+      "size": 136000,
       "num": 29,
-      "interval": 3
+      "interval": 10
     }
   },
   "num": %d
