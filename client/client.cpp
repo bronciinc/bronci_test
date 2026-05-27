@@ -19,17 +19,19 @@ namespace std {
 extern const uint32_t cfg_gops;
 const uint32_t cfg_gops = 1;
 
+#if 0
+// Small P frame
 const char* msg_template =
 R"(
 {
   "frame": {
     "I": {
-      "size": 136000,
+      "size": 132000,
       "num": 1,
       "interval": 10
     },
     "P": {
-      "size": 136000,
+      "size": 13200,
       "num": 29,
       "interval": 29
     }
@@ -37,6 +39,27 @@ R"(
   "num": %d
 }
 )";
+#else
+// Big P frame
+const char* msg_template =
+R"(
+{
+  "frame": {
+    "I": {
+      "size": 132000,
+      "num": 1,
+      "interval": 10
+    },
+    "P": {
+      "size": 132000,
+      "num": 29,
+      "interval": 29
+    }
+  },
+  "num": %d
+}
+)";
+#endif
 
 int main()
 {

@@ -3,19 +3,8 @@
 
 # Build & Run
 
-## Using Docker (Recommended)
-A `docker-compose` environment is provided to easily build and test both the `device` and `client` together. The source code is mounted directly into the containers, so you can edit the code locally and test immediately.
 
-1. Ensure `docker` and `docker-compose` are installed.
-2. Run the following command in the project root:
-   ```bash
-   docker-compose up
-   ```
-Docker will automatically build the CMake projects for both `device` and `client` in their respective `.build` directories, and then execute them. The client will start slightly after the device is ready. Both logs will be printed to the console. 
-
-Press `Ctrl + C` to stop.
-
-## Using Docker on macOS M1 (Apple Silicon)
+## Using Docker on macOS M1/86 (Apple Silicon)
 If you are on an Apple Silicon Mac, you cannot run x86 virtual machines directly. Instead, you can use the provided x86 Docker Compose configuration to simulate an `x86_64` environment:
 
 1. Build and enter the interactive x86 container (use `--build` for the first time or when Dockerfile changes):
@@ -33,11 +22,19 @@ If you are on an Apple Silicon Mac, you cannot run x86 virtual machines directly
    cmake -B .build .
    cmake --build .build
    ```
+
+   ```bash
+   cd client
+   cmake -B .build .
+   cmake --build .build
+   ```
 3. Run the compiled application:
    ```bash
    .build/device
    ```
-
+   ```bash
+   .build/client
+   ```
 ### Open another terminal in the running container
 If you want to build in one terminal and run/monitor in another:
 1. Open a new terminal on your Mac.

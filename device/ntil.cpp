@@ -373,7 +373,7 @@ static void jobSendingVideo(uint32_t tid)
           mylog::message(" -NTIL_VideoPutInData() I-[{}][{}]: {} ", cnt_send, cnt_i, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        mylog::message(" -NTIL_VideoPutInData() I {} ", frame_id);
+        mylog::message(" -NTIL_VideoPutInData() I frame_id={} gop_id={} fps={} bps={}", frame_id, gop_id, fps, bps);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_i));
         frame_id++;
       } while (result != size_i);
@@ -403,7 +403,7 @@ static void jobSendingVideo(uint32_t tid)
           mylog::message(" -NTIL_VideoPutInData() P-[{}][{}]: {} ", cnt_send, cnt_p, result);
           std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
-        mylog::message(" -NTIL_VideoPutInData() P {} ", frame_id);
+        mylog::message(" -NTIL_VideoPutInData() P frame_id={} gop_id={} fps={} bps={}", frame_id, gop_id, fps, bps);
         std::this_thread::sleep_for(std::chrono::milliseconds(interval_p));
         frame_id++;
       } while (result != size_p);
@@ -415,8 +415,8 @@ static void jobSendingVideo(uint32_t tid)
 
   ts_frame--;
   // Dummy Frame to trigger the sending of previous frames in case some frames are still in queue of SDK
-  result = NTIL_VideoPutInData( lineID, pbuff_p, size_p, FRAME_TYPE_P, ts_frame, frame_id, gop_id, fps, bps, H264);
-  mylog::message(" -NTIL_VideoPutInData() I {} ", frame_id);
+  // result = NTIL_VideoPutInData( lineID, pbuff_p, size_p, FRAME_TYPE_P, ts_frame, frame_id, gop_id, fps, bps, H264);
+  // mylog::message(" -NTIL_VideoPutInData() Dummy Frame I {} ", frame_id);
 
   delete [] pbuff_i;
   delete [] pbuff_p;
